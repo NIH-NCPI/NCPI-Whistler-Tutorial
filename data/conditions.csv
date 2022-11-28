@@ -1,0 +1,65 @@
+subject_id,condition_code,condition_name,present_absent
+fd-sub1,HP:0000076,Vesicoureteral reflux,True
+fd-sub1,HP:0000126,Hydronephrosis,True
+fd-sub1,HP:0000218,High palate,True
+fd-sub1,HP:0000276,Long face,True
+fd-sub1,HP:0000297,Facial hypotonia,True
+fd-sub1,HP:0000391,Thickened helices,True
+fd-sub1,HP:0000508,Ptosis,True
+fd-sub1,HP:0000535,Sparse and thin eyebrow,True
+fd-sub1,HP:0000545,Myopia,True
+fd-sub1,HP:0000637,Long palpebral fissure,True
+fd-sub1,HP:0000736,Short attention span,True
+fd-sub1,HP:0000752,Hyperactivity,True
+fd-sub1,HP:0000767,Pectus excavatum,True
+fd-sub1,HP:0000960,Sacral dimple,True
+fd-sub1,HP:0001162,Postaxial hand polydactyly,True
+fd-sub1,HP:0001265,Hyporeflexia,True
+fd-sub1,HP:0001385,Hip dysplasia,True
+fd-sub1,HP:0001647,Bicuspid aortic valve,True
+fd-sub1,HP:0001845,Overlapping toe,True
+fd-sub1,HP:0002019,Constipation,True
+fd-sub1,HP:0002020,Gastroesophageal reflux,True
+fd-sub1,HP:0002342,"Intellectual disability, moderate",True
+fd-sub1,HP:0002558,Supernumerary nipple,True
+fd-sub1,HP:0002650,Scoliosis,True
+fd-sub1,HP:0003186,Inverted nipples,True
+fd-sub1,HP:0003191,Cleft ala nasi,True
+fd-sub1,HP:0003429,CNS hypomyelination,True
+fd-sub1,HP:0008577,Underfolded helix,True
+fd-sub1,HP:0008689,Bilateral cryptorchidism,True
+fd-sub1,HP:0009765,Low hanging columella,True
+fd-sub1,HP:0010297,Bifid tongue,True
+fd-sub1,HP:0011330,Metopic synostosis,True
+fd-sub1,HP:0012804,Corneal ulceration,True
+fd-sub1,HP:0003468,Abnormal vertebral morphology,True
+fd-sub1,HP:0000481,Abnormal cornea morphology,True
+fd-sub1,HP:0002616,Aortic root aneurysm,True
+fd-sub1,HP:0000606,Abnormality of the periorbital region,True
+fd-sub1,HP:0010485,Hyperextensibility at elbow,True
+fd-sub2,HP:0000076,Vesicoureteral reflux,False
+fd-sub2,HP:0000126,Hydronephrosis,False
+fd-sub3,HP:0012804,Corneal ulceration,False
+fd-sub3,HP:0003468,Abnormal vertebral morphology,False
+fd-sub4,HP:0000218,High palate,True
+fd-sub4,HP:0000316,Hypertelorism,True
+fd-sub4,HP:0001763,Pes planus,True
+fd-sub4,HP:0002616,Aortic root aneurysm,True
+fd-sub4,HP:0011819,Submucous cleft soft palate,True
+fd-sub5,HP:0000189,Narrow palate,True
+fd-sub5,HP:0000218,High palate,True
+fd-sub5,HP:0000268,Dolichocephaly,True
+fd-sub5,HP:0000272,Malar flattening,True
+fd-sub5,HP:0000977,Soft skin,True
+fd-sub5,HP:0001166,Arachnodactyly,True
+fd-sub5,HP:0001388,Joint laxity,True
+fd-sub5,HP:0002616,Aortic root aneurysm,True
+fd-sub5,HP:0005116,Arterial tortuosity,True
+fd-sub5,HP:0010648,Dermal translucency,True
+fd-sub5,HP:0000347,Micrognathia,True
+fd-sub5,HP:0012804,Corneal ulceration,False
+fd-sub5,HP:0003468,Abnormal vertebral morphology,False
+fd-sub7,HP:0000845,Elevated circulating growth hormone concentration,True
+fd-sub8,HP:0012804,Corneal ulceration,False
+fd-sub8,HP:0003468,Abnormal vertebral morphology,False
+fd-sub9,HP:0001578,Increased circulating cortisol level,True

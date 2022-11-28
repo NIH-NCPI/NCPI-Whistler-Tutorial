@@ -1,0 +1,15 @@
+varname,vardesc,type,values,min,max
+seq_filename,seq_filename,String,,,
+vcf,vcf,String,,,
+subject_id,subject_id,String,,,
+sample_id,sample_id,String,,,
+sequencing_assay,sequencing_assay,String,exome,,
+analyte_type,analyte_type,String,DNA,,
+library_prep_kit_method,library_prep_kit_method,String,DNA_3.0_library_prep,,
+exome_capture_platform,exome_capture_platform,String,nimblegen_solution_bigexome_2011,,
+capture_region_bed_file,capture_region_bed_file,String,,,
+reference_genome_build,reference_genome_build,String,GRCh38DH;hs37d5,,
+alignment_method,alignment_method,String,,,
+data_processing_pipeline,data_processing_pipeline,String,,,
+functional_equivalence_standard,functional_equivalence_standard,String,no,,
+date_data_generation,date_data_generation,Int,,20160526,20160526

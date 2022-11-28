@@ -1,0 +1,7 @@
+varname,vardesc,type,values,min,max
+subject_id,subject_id,String,,,
+sample_id,sample_id,String,,,
+dbgap_sample_id,dbgap_sample_id,Int,,1155301,1155303
+sample_source,sample_source,String,UBERON:0000178;UBERON:0001003,,
+sequencing_center,sequencing_center,String,FD,,
+tissue_affected_status,tissue_affected_status,String,Affected;Unaffected,,

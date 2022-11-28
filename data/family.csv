@@ -1,0 +1,4 @@
+family_id,consanguinity,consanguinity_detail,pedigree_image,pedigree_detail,family_history,family_onset
+fd-fam1,No,,,,,Congenital
+fd-fam2,Yes,Parents of proband are First Cousins,,,,
+fd-fam3,Yes,,,,,

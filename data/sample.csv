@@ -1,0 +1,11 @@
+subject_id,sample_id,dbgap_sample_id,sample_source,sequencing_center,tissue_affected_status
+fd-sub1,fd-sam1_1,,UBERON:0001003,FD,Affected
+fd-sub1,fd-sam1_2,,UBERON:0001003,FD,Unaffected
+fd-sub2,fd-sam2,,UBERON:0001003,FD,
+fd-sub3,fd-sam3,,UBERON:0001003,FD,
+fd-sub4,fd-sam4,,UBERON:0000178,FD,
+fd-sub5,fd-sam5,,UBERON:0000178,FD,
+fd-sub6,fd-sam6,,UBERON:0000178,FD,
+fd-sub7,fd-sam7,1155301,,FD,
+fd-sub8,fd-sam8,1155302,,FD,
+fd-sub9,fd-sam9,1155303,,FD,

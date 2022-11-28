@@ -1,0 +1,5 @@
+varname,vardesc,type,values,min,max
+subject_id,subject_id,String,,,
+condition_code,HP Code,String,,
+condition_name,Condition Name,String,,,
+present_absent,Is condition present or absent,String,TRUE;FALSE,,

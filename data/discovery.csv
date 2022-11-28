@@ -1,0 +1,7 @@
+subject_id,sample_id,gene,gene_class,inheritance_description,zygosity,variant_genome_build,chrom,pos,ref,alt,hgvsc,hgvsp,transcript,sv_name,sv_type,significance
+fd-sub1,fd-sam1_1,,,Unknown/Other,Heterozygous,GRCh37,6,144507790,,,,,,Deletion 144507790-152949444,Deletion,Likely pathogenic
+fd-sub4,fd-sam4,LBR,Tier 1 - Candidate,Autosomal recessive (compound heterozygous),Heterozygous,GRCh37,1,225592153,T,C,c.1640A>G,,NM_002296.3,,,Pathogenic
+fd-sub4,fd-sam4,LBR,Tier 1 - Candidate,Autosomal recessive (compound heterozygous),Heterozygous,GRCh37,1,225609919,G,A,c.226C>T,,NM_002296.3,,,Pathogenic
+fd-sub5,fd-sam5,LBR,Tier 1 - Candidate,Autosomal recessive (compound heterozygous),Heterozygous,GRCh37,1,225592153,T,C,c.1640A>G,,NM_002296.3,,,Pathogenic
+fd-sub7,fd-sam7,SERPINF1,Known,Autosomal recessive (homozygous),Homozygous,GRCh37,17,1680628,TCACCTTCCCGCTGGACTA,-,c.1152_1170del,,NM_002615.5,,,Pathogenic
+fd-sub9,fd-sam9,SERPINF1,Known,Autosomal recessive (homozygous),Homozygous,GRCh37,17,1680628,TCACCTTCCCGCTGGACTA,-,c.1152_1170del,,NM_002615.5,,,Pathogenic

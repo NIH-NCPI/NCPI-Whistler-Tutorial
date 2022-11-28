@@ -1,0 +1,8 @@
+varname,vardesc,type,values,min,max
+family_id,family_id,String,,,
+consanguinity,consanguinity,String,No;Yes,,
+consanguinity_detail,consanguinity_detail,String,,,
+pedigree_image,pedigree_image,String,,,
+pedigree_detail,pedigree_detail,String,,,
+family_history,family_history,String,,,
+family_onset,family_onset,String,Congenital,,

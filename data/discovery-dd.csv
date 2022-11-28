@@ -1,0 +1,18 @@
+varname,vardesc,type,values,min,max
+subject_id,subject_id,String,,,
+sample_id,sample_id,String,,,
+gene,gene,String,LBR;SERPINF1,,
+gene_class,gene_class,String,Known;Tier 1 - Candidate,,
+inheritance_description,inheritance_description,String,Autosomal recessive (compound heterozygous);Autosomal recessive (homozygous);Unknown/Other,,
+zygosity,zygosity,String,Heterozygous;Homozygous,,
+variant_genome_build,variant_genome_build,String,GRCh37,,
+chrom,chrom,Int,,1,6
+pos,pos,Int,,144507790,225609919
+ref,ref,String,,,
+alt,alt,String,,,
+hgvsc,hgvsc,String,,,
+hgvsp,hgvsp,String,,,
+transcript,transcript,String,,,
+sv_name,sv_name,String,,,
+sv_type,sv_type,String,Deletion,,
+significance,significance,String,Likely pathogenic;Pathogenic,,

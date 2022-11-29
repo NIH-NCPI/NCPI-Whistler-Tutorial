@@ -1,0 +1,3 @@
+
+# Always add fhir_hosts and any other files that have sensitive info from git
+fhir_hosts

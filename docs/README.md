@@ -6,6 +6,8 @@ for the [CMG](https://www.genome.gov/Funded-Programs-Projects/NHGRI-Genome-Seque
 
 With that said, let's get started!
 
-For tips on setting things up to get started, read [Before You Begin](/before_you_begin). 
+* [Before You Begin](/before_you_begin)
+* [Setting up Your Project](/the_setup).
+* [Whistle Code](whistling)
 
-To jump right into downloading the dataset and building out the configuration, read [The Setup](/the_setup).
+

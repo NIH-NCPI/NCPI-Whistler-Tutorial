@@ -382,3 +382,4 @@ active_tables:
 
 Read more about the [configuration file](https://nih-ncpi.github.io/ncpi-whistler/#/?id=project-configuration). 
 
+Now that you have a valid configuration, it's time to create some [whistle code](/whistling).

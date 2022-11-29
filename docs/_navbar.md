@@ -5,3 +5,4 @@
   * [Tutorial Introduction](/)
   * [Before You Begin](/before_you_begin)
   * [Project Setup](/the_setup)
+  * [Writing Whistle](/whistling)

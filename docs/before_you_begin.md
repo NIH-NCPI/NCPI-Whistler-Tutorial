@@ -18,3 +18,6 @@ I won't get into how to install git on your machine however, [google may be of s
 
 ## Bash Commands
 To keep the tutorial clean and simple, everything is written using bash commands. While that may not be your preferred method for running tools via the command-line, it is an option that is available to everyone whether they use Mac, Windows or Linux. 
+
+## Next Step - Project Setup
+To jump right into downloading the dataset and building out the configuration, read [The Setup](/the_setup).

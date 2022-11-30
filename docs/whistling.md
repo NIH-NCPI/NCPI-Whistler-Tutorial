@@ -61,6 +61,145 @@ def Transform_Dataset(resource) {
     $this: CreateDataDictionaryDefinitions(resource);
 }
 ```
-And with those 5 lines, you've written your first whistle code! This defines a function, *Transform_dataset*, which accepts a single argument, *resource*. The function definition probably looks familiar to anyone whose written javascript before, however, the contents of the function are obviously not javascript. 
+And with those 5 lines, you've written your first whistle code! This defines a function, *Transform_Dataset*, which accepts a single argument, *resource*. The function definition probably looks familiar to anyone who's written javascript before, however, the contents of the function are obviously not javascript. Those three lines are simply mapping the output from a function call to $this. The variable, $this, refers to whatever the current object is. If you were to trace the function calls associated with CreateDataDictionaryTerminologies, you end up inside the *wlib_dd_terms_codesystem.wstl* function at the end of which you can see the following lines: 
+```wlib_dd_terms_codesystem.wstl
+def ProcessCodeSystem(study, cs_entry) {
+    var codesystem: BuildCodeSystem(study, cs_entry);
+    if (codesystem?) {
+        out ddmeta: codesystem;
+        out ddmeta: BuildValueSet(study, cs_entry);
+    } 
+}
+```
+This function assigns the output of the function *BuildCodeSystem* to a local variable, *codesystem*. Then, if that returns something other than *null*, it maps that information to the output property, *ddmeta*. It then calls the function, *BuildValueSet* and maps that data to the same output property. 
 
+Most programmers might believe that the output from that BuildValueSet function overwrites the codesystem, but whistle will represent them as an array containing the output from both of the two functions, *BuildCodeSystem* and *BuildValueSet*. And, if you were to call this function multiple times with different cs_entry values, the final value for **ddmeta* will be a list containing all of the CodeSystems and ValueSets produced by each of those calls. Also, there is no need to check if the function returns null. Whistle silently skips null values, making these calls much easier to read without all of the conditional decoration required by more conventional languages. 
+
+As for what that variable *ddmeta* looks like at the end of all of this, it is just a property at the root level of the JSON containing all of the FHIR resources that are produced. In the Whistler program, *play*, this is referred to as a module. If we were to run the newly created function, our final FHIR output file would have 2 of these modules. *ddmeta* and *harmony*, which is created by the function, *CreateDataDictionaryConceptMap*. 
+
+Before we do that, however, we still have one last thing to do before we have a fully functional Whistler pipeline. 
+
+## The Whistle Entrypoint
+The whistle entrypoint is just the whistle code that kicks everything off. While it can be more complex, I typically just have a single whistle call inside. This file should exist outside the projector library and must be specified in the configuration under the property, *whistle_src*. It simply calls the function we created above:
+```_entry.wstl
+$this: Transform_Dataset($root);
+```
+This should look familiar, except for a couple of things: 
+1. There is no function. This is just bare whistle code mappings.  
+2. $root is a variable that represents the JSON object that is passed to whistle. It is just the structured extractions from the CSVs, data-dictionaries and study details you described in your configuration file. 
+
+## Generating FHIR Resources
+Now that we have our entrypoint, we can build some FHIR resources!
+
+```bash
+$ play study.yaml
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /usr/local/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+ddmeta                           CodeSystem               21         100.00
+ddmeta                           ValueSet                 21         100.00
+```
+If you see something similar to the output above, then all went well and you have some new files you can inspect. Before we get into those files, however, let's go over what we are seeing here. 
+
+The actual script to run the pipeline is *play*, which takes at the very least, one or more configuration files. When you run it, the first thing it does is to compile the harmony csv file into a JSON file containing the dataset's [Harmony ConceptMap](https://nih-ncpi.github.io/ncpi-fhir-ig/StructureDefinition-study-data-dictionary-harmony.html). 
+
+The next bit of info is just the path Whistler has identified for whistle. For this run, I'm using the dockerized version of Whistler, so it lives inside the /usr/local/bin directory. However, if you installed whistle according to the official instructions, then it probably ended up someplace different. 
+
+The next line just confirms that whistle didn't encounter any issues when compiling your FHIR Resources. The next line informs you where those resources can be found. In this case, that file is *output/whistle-output/tut.output.json*. 
+
+Before you open that file up, let's look at the module report that is shown at the very final portion of the output. If you remember from when we were digging through some of the autogenerated functions, there were lines that said something like *out ddmeta: codesystem*. Well, that ddmeta property ended up receiving 21 CodeSystems and 21 ValueSets. 
+
+When you open that file up, you will see that there is one root level property, ddmeta, which is a list that contains a number of JSON objects, 21 of which are CodeSystems and 21 are ValueSets. 
+
+If you have been paying attention, you'll probably wonder where those harmony files ended up. Well, if you don't use the *ALL: true* entry in your active tables, you have to explicitly add harmony along with the normal tables. So, add two more lines to that *active_tables* property to your configuration file:
+```study.yaml
+# Set any dataset entry to false to filter it out from Whistle's input JSON
+active_tables:
+  subject: true
+  family: true
+  conditions: true
+  sample: true
+  sequencing: true
+  discovery: true
+  harmony: true
+  data-dictionary: true
+```
+and then rerun that play:
+```bash
+$ play study.yaml
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /usr/local/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+ddmeta                           ActivityDefinition       6          100.00
+ddmeta                           CodeSystem               21         100.00
+ddmeta                           ObservationDefinition    75         100.00
+ddmeta                           ValueSet                 21          91.30
+harmony                          ConceptMap               1          100.00
+harmony                          ValueSet                 2            8.70
+```
+Those ConceptMap and ValueSet resources for the harmony module were triggered due to the *harmony: true* setting in the active_tables. The ActivityDefinition and ObservationDefinition resources are the result of the *data-dictionary: true* setting. Those two resource types conform to the [Study Data Dictionary](https://nih-ncpi.github.io/ncpi-fhir-ig/study_metadata.html#study-data-dictionary-data-table) resources defined in the NCPI FHIR IG.  
+
+It's worth noting that play does its best to only compile FHIR Resources when needed. So, if you were to rerun play again, you would see the following response: 
+```bash
+$ play study.yaml
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Skipping whistle since none of the input has changed
+```
+This is especially helpful when you are testing out some changes and decide that you are ready to load the data into a different FHIR server. If your whistle code worked fine for DEV, then there is no need to rebuild those resources before you load them into QA. 
+
+You can always force play to recompile your FHIR resources even if it thinks nothing has changed using the "-f" or "--force" arguments. 
+
+## Tabular Data in FHIR
+Before we move on to writing actual Whistle code, we can use Whistler to generate some more whistle code. This time, we'll have it create the Whistle code necessary to transform our data tables into [FHIR Observations](https://nih-ncpi.github.io/ncpi-fhir-ig/tabular.html) as defined by the NCPI FHIR IG. 
+
+There are [good reasons](https://nih-ncpi.github.io/ncpi-fhir-ig/using_source_data.html) to capture tabular data in FHIR even if those CSV files can be downloaded elsewhere, but it may not be something everyone agrees with. For that reason, as well as the fact that there are actually two recommended approaches to storing these data, Whistler requires a separate script be run to generate the whistle code. For this example, we'll stick with the slightly more straightforward approach, which is using an Observation for each row of data. To do that, we simply run a single program: 
+```bash
+$ buildsrcobs study.yaml
+File created: projector/source_data_observations.wstl
+```
+That file, source_data_observations.wstl, is more akin to the wlib_dd* files in that it is based on the contents of the data-dictionaries specified by the study configuration file. There is also a single top level function from that file that we'll need to add to our ___transform.wstl file, *BuildRawDataObs*.
+
+```___transform.wstl
+def Transform_Dataset(resource) {
+    $this: CreateDataDictionaryTerminologies(resource);
+    $this: CreateDataDictionaryConceptMap(resource);
+    $this: CreateDataDictionaryDefinitions(resource);
+    $this: BuildRawDataObs(resource);
+}
+```
+With this completed, we can run play once again: 
+
+```bash
+$ initplay study.yaml
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /home/est/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+ddmeta                           ActivityDefinition       6          100.00
+ddmeta                           CodeSystem               21         100.00
+ddmeta                           ObservationDefinition    75         100.00
+ddmeta                           ValueSet                 21          91.30
+harmony                          ConceptMap               1          100.00
+harmony                          ValueSet                 2            8.70
+source_data                      Observation              106        100.00
+```
+With this new version of ___transformation.wstl, play reports we now have a new module, *source_data* which contains 106 Observation resources. Each of those Observations contains all of the non-missing data from one of the rows in our 6 tables. 
+
+If you open the JSON file specified as the Resulting file, output/whistle-output/tut.output.json, you will see there are now 3 root level properties, ddmeta, harmony and source_data. Each of those are lists containing a number of FHIR Resources. 
+
+## Writing Whistle Code
 

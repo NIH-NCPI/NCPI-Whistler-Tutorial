@@ -189,12 +189,30 @@ The filename property is hopefully familiar enough at this point. It simply tell
 
 To learn more about the data_dictionary entries, see [the manual](https://nih-ncpi.github.io/ncpi-whistler/#/ref/project_config?id=data_dictionary-required).
 
+Finally, we have an interesting situation where we want to embed all subjects of the same family inside the corresponding family. To do that, we will make one more addition to the subject entry: 
+```yaml
+  subject:
+    filename: data/subject.csv
+    code_harmonization: harmony/data-harmony.csv
+    embed:
+      dataset: family
+      colname: family_id
+    data_dictionary:
+      filename: data/subject-dd.csv
+      colnames:
+          desc: vardesc
+```
+That *embed* property tells whistler to merge subjects into their corresponding family entries where the column based on matching *family_id* values. For our purposes, if we want to create a FHIR Group containing each of the subjects, they will all be right there within the same family entry. 
+
 Our final dataset entry should look something like this: 
 ```yaml
 dataset:
   subject:
     filename: data/subject.csv
     code_harmonization: harmony/data-harmony.csv
+    embed: 
+      dataset: family
+      colname: family_id
     data_dictionary:
       filename: data/subject-dd.csv
       colnames:
@@ -202,6 +220,7 @@ dataset:
   family:
     filename: data/family.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: family_id
     data_dictionary:
       filename: data/family-dd.csv
       colnames:
@@ -209,6 +228,7 @@ dataset:
   conditions:
     filename: data/conditions.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id,condition_code
     data_dictionary:
       filename: data/conditions-dd.csv
       colnames:
@@ -216,6 +236,7 @@ dataset:
   sample:
     filename: data/sample.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id, sample_id
     data_dictionary:
       filename: data/sample-dd.csv
       colnames:
@@ -223,6 +244,7 @@ dataset:
   sequencing:
     filename: data/sequencing.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id,seq_filename
     data_dictionary:
       filename: data/sequencing-dd.csv
       colnames:
@@ -230,11 +252,15 @@ dataset:
   discovery:
     filename: data/sequencing.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id, sample_id
     data_dictionary:
       filename: data/discovery-dd.csv
       colnames:
           desc: vardesc
 ```
+If you look carefully, you'll notice one more property that hasn't been discussed yet. The *key_columns* property that appears in all tables except the *subject*. This is only necessary if you decide you want to use some of the more advanced data-dictionary based Whistle code that Whistler can produce. That column instructs whister how which columns must be used to construct unique *keys* for the rows of data. For Sequencing, since a subject can have more than one file, we tell Whistler that each combination of *subject_id* AND *seq_filename* is necessary to be unique. 
+
+Subject is easy, since it's key column happens to be the default, which we defined in the property, *id_colname*. As a result, we don't need to provide a *key_columns* property for that table. 
 
 There is actually more that can be done with our dataset entries. For instance, if we want to merge one table inside another table's entries based on common key columns, you can have Whistler do that for you. Or, if you want to group entries of the same table together using a set of keys, Whistler can do that as well. These types of transformation can help simplify the whistle code and make compilation of resources faster. However, they not expected to be necessary too often. Read more about configuration [dataset entries](https://nih-ncpi.github.io/ncpi-whistler/#/ref/project_config?id=the-dataset-list-dataset).
 
@@ -331,6 +357,9 @@ dataset:
   subject:
     filename: data/subject.csv
     code_harmonization: harmony/data-harmony.csv
+    embed: 
+      dataset: family
+      colname: family_id
     data_dictionary:
       filename: data/subject-dd.csv
       colnames:
@@ -338,6 +367,7 @@ dataset:
   family:
     filename: data/family.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: family_id
     data_dictionary:
       filename: data/family-dd.csv
       colnames:
@@ -345,6 +375,7 @@ dataset:
   conditions:
     filename: data/conditions.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id,condition_code
     data_dictionary:
       filename: data/conditions-dd.csv
       colnames:
@@ -352,6 +383,7 @@ dataset:
   sample:
     filename: data/sample.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id, sample_id
     data_dictionary:
       filename: data/sample-dd.csv
       colnames:
@@ -359,6 +391,7 @@ dataset:
   sequencing:
     filename: data/sequencing.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id,seq_filename
     data_dictionary:
       filename: data/sequencing-dd.csv
       colnames:
@@ -366,6 +399,7 @@ dataset:
   discovery:
     filename: data/sequencing.csv
     code_harmonization: harmony/data-harmony.csv
+    key_columns: subject_id, sample_id
     data_dictionary:
       filename: data/discovery-dd.csv
       colnames:

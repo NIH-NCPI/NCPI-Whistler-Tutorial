@@ -6,3 +6,5 @@
   * [Before You Begin](/before_you_begin)
   * [Project Setup](/the_setup)
   * [Writing Whistle](/whistling)
+* [NCPI FHIR IG](https://nih-ncpi.github.io/ncpi-fhir-ig/)
+* [HL7 FHIR](https://hl7.org/fhir/)

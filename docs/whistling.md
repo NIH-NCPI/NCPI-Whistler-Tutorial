@@ -224,7 +224,7 @@ The parts of that object we are interested in are right there at the top. We'll 
 
 > A note about whistle code: the bodies of whistle functions look very similar to JSON objects, which makes writing these transformations very straightforward. However, to make life easier, whistle's property names are written as if they are variable names rather than JSON Object properties. This makes the code much more readable. For assigning a string to a member property, however, you'll still need to enclose the string in quotes. 
 
-Let's have a look at the basic Resource without any data assigned to it before filling it in with our actual data:
+Let's have a look at the basic Resource without any data assigned to it before filling it in with our actual data. Copy the following lines into a new file, *projector/study.wstl*.
 ```JSON
 def Study(study) {
     // FHIR Identifier has system/value pairs. We'll be using the study_id
@@ -253,6 +253,9 @@ Each of those property assignments are being done to the *this* object which is 
 The first thing to note is the single argument passed into the function, *study*. We'll go over where that comes from in a bit, but know that it is that study object from the root level of the whistle input file mentioned earlier. If you look back at the snippet shown above, you can see a few properties that are obvious fits for properties in our example FHIR resource. The example below shows those easy ones filled in:
 ```JSON
 def Study(study) {
+    // Tag the resource with the study ID
+    meta.tag[]: StudyMeta(study);
+
     // FHIR Identifier has system/value pairs. We'll be using the study_id
     // and, optionally, the DbGAP accession id if it were present as 
     // identifiers
@@ -273,6 +276,8 @@ def Study(study) {
 }
 ```
 When the code above is processed by whistle, the value for *study.title* will be assigned to the resource's *title* property, as will the value of *study.desc* be assigned to *description*. This makes these transformations transparent, especially for these most basic assignments. 
+
+We've also added something that is normally considered an optional property, meta.tag. This is a simple way of identifying the resources Whistler creates as belonging to this particular study. We do this because it allows whistler to only catalog resources that reside in a target FHIR server that are associated with this particular study. This function is defined in the file, *_study_meta.wstl*. For more information about the meta.tag property, please see [the manual](https://nih-ncpi.github.io/ncpi-whistler/#/ref/whistle_projections?id=the-importance-of-the-metatag-property). 
 
 For the others, we'll need some functions, one of which was provided when we ran *init-play* earlier in the tutorial. If you look in the projector directory, you'll see a file, *_key_identifier.wstl* which defines a single function, Key_Identifier, shown below: 
 ```_key_identifier.wstl
@@ -324,13 +329,18 @@ This is a pretty boring function, but a) it is reusable, and b) it is clear as t
 Now that we have that function, we can add it to Study function body as needed:
 ```JSON
     // We'll link the study's website here
-    relatedArtifact[]:  StudyArtificat("documentation", "Study Website", study.url);
+    relatedArtifact[]:  StudyArtifact("documentation", "Study Website", study.url);
 ```
 If we had more URLs, we could add those as well using different labels. 
+
+> Whistle sidenote: that empty pair of squared brackets at the end of relatedArtifact instructions whistle that relatedArtifact should be a list and for it to add the return of the function call to the list. This is very helpful if aren't certain if the function will return an object. It also allows you to make repeated function calls to the same list (each time with empty square braces) knowing that any of those calls that produce non-NULL values will be appended to the list. 
 
 The final Study function should now look like this:
 ```JSON
 def Study(study) {
+    // Tag the resource with the study ID
+    meta.tag[]: StudyMeta(study);
+
     // FHIR Identifier has system/value pairs. We'll be using the study_id
     // and, optionally, the DbGAP accession id if it were present as 
     // identifiers
@@ -344,9 +354,166 @@ def Study(study) {
     enrollment[0]:  Reference_Key_Identifier(study, "Group", study.id);
 
     // We'll link the study's website here
-    relatedArtifact[]:  StudyArtificat("documentation", "Study Website", study.url);
+    relatedArtifact[]:  StudyArtifact("documentation", "Study Website", study.url);
     
     status: "completed"  ;
     resourceType: "ResearchStudy";
 }
 ```
+
+Now, there is one last function we should add to this file. While it probably isn't necessary for this particular resource, since there will likely only ever be a single study produced by a single study config, it's good practice to be consistent. This function will work like those that we ran earlier from the Transform_Data function except this one will call our new Study function:
+
+```JSON
+def ProcessStudy(study) {
+    out research_study: Study(study);
+}
+```
+This should be familiar enough. Basically, we accept something called *study* which is then passed to our new function, *Study*. The return value for that is stored in something called *research_study*. This *out research_study* treats the result differently than what we've seen before. Rather than appending to a local property called research_study, it works directly on *research_study* on the main output object. As a result of a successful Study call, there will be a new module in the final output called *research_study*. 
+
+We are almost done with the research study. The final step is to call this new Process function from our Transform_Dataset function. We'll add this as the last line in that function: 
+
+```___transform.wstl
+def Transform_Dataset(resource) {
+    $this: CreateDataDictionaryTerminologies(resource);
+    $this: CreateDataDictionaryConceptMap(resource);
+    $this: CreateDataDictionaryDefinitions(resource);
+    $this: BuildRawDataObs(resource);
+
+    // Project Specific functions
+    $this: ProcessStudy(resource.study);
+}
+```
+If you compare that new call to the previous ones, we are not passing the entire input object, but only the study portion. That's why we were referring to the incoming data as *study* in those various function parameters. 
+
+At this point, we can run play and look at our handiwork:
+```bash
+$ play study.yaml
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /home/est/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+ddmeta                           ActivityDefinition       6          100.00
+ddmeta                           CodeSystem               21         100.00
+ddmeta                           ObservationDefinition    75         100.00
+ddmeta                           ValueSet                 21          91.30
+harmony                          ConceptMap               1          100.00
+harmony                          ValueSet                 2            8.70
+research_study                   ResearchStudy            1          100.00
+source_data                      Observation              106        100.00
+```
+That second to the last line there confirms that we did, in fact, succeed in creating a ResearchStudy resource. If you want to have a look at it, open up the output file, *output/whistle-output/tut.output.json*, and look for the property, research_study. It should look like this:
+```JSON
+  "research_study": [
+    {
+      "description": "This is just some fake data",
+      "enrollment": [
+        {
+          "identifier": {
+            "system": "https://some-place.org/tut/fhir/group",
+            "value": "TUT"
+          }
+        }
+      ],
+      "identifier": {
+        "system": "https://some-place.org/tut/fhir/researchstudy",
+        "value": "TUT"
+      },
+      "meta": {
+        "tag": [
+          {
+            "code": "TUT",
+            "system": "https://some-place.org/tut/fhir/researchstudy"
+          }
+        ]
+      },
+      "relatedArtifact": [
+        {
+          "label": "Study Website",
+          "type": "documentation",
+          "url": "https://some-place.org/studies/tut"
+        }
+      ],
+      "resourceType": "ResearchStudy",
+      "status": "completed",
+      "title": "NCPI Whistler Tutorial"
+    }
+  ],
+```
+Keep in mind that *research_study* is a property of the root object that happens to be a list, and isn't actually FHIR in any way. For this situation, it only holds a single resource, but most of the time, there could be quite a few resources inside those root level lists. That one object there, however, should look familiar since it's what we've been working on. Everything you see should validate just fine against a vanilla R4 FHIR server, except that enrollment property. For Whistler to be able to load this ResearchStudy, we'll need to define that as well. 
+
+## Whistle Code for StudyGroup
+The NCPI FHIR IG specifies that there *must* be at least one *StudyGroup* for a formal NCPI Research Study. The [StudyGroup](https://nih-ncpi.github.io/ncpi-fhir-ig/StructureDefinition-study-group.html) is defined as a Group containing human study participants (FHIR Patients). To create this group, copy the lines below into a file, *projector/group.wstl*.
+
+```group.wstl
+// Description: Build basic reference to a Patient 
+//
+//  study - This is the full study object created by Whistler
+//  subject - Must have a subject_id
+def Reference_Enrollment(study, family) {
+    if ($IsNotNil(subject.subject_id)) {
+        entity: Reference_Key_Identifier(study, "Patient", subject.subject_id);
+    }
+}
+
+def StudyGroup(study, subjects) {
+    meta.tag[]: StudyMeta(study);
+
+    identifier[]: Key_Identifier(study, "Group", study.id);
+    resourceType: "Group";
+    type: "person";
+    actual: true;
+
+    member: Reference_Enrollment(study, subjects[]);
+    quantity: $ListLen(subjects[*]);
+}
+
+// Description: Wrapper to create the group(s)
+//
+//  study - This is the full study object created by Whistler
+//  families - The family table from the root object 
+def ProcessStudyGroup(study, families) {
+    var subjects: $Flatten(families[*].subject);
+    out research_study: StudyGroup(study, subjects);
+}
+```
+Let's skip that first function for now. For the second function, we see a few familiar pieces here: meta.tag, identifier. Hopefully, the constants make sense as well. The type is "person". The members will be enumerated, so we set *actual* to true. And the resource type is "Group", which is a standard [FHIR Resource](https://hl7.org/fhir/group.html). 
+
+In addition to these, that function still has a couple of things we haven't seen:
+> member: Reference_Enrollment(study, subjects[]);
+
+This line is a bit different from some of the others. If you don't already know Whistle, you may be a bit confused by the syntax, *subjects[]*. When whistle encounters this line, it will call that *Reference_Enrollment* once for each subject in the *subjects* list. So, if there are 10 subjects in our dataset, there will be 10 different calls.
+
+That *Reference_Enrollment* call simply builds identifiers for one subject and assigns it to the property, *entity*. So, if we have 10 subjects, when whistle is run *member* will have a property called *entity* which will be a list of 10 reference identifiers. Whistle doesn't overwrite values, but instead aggregates them. So, rather than overwriting member.entity with each of the 10 runs, it converts entity into a list after the second return and appends each subsequent call to the end. 
+
+> quantity: $ListLen(subjects[*]);
+This line introduces a couple more tricks. First, there is the function $ListLen which is a whistle [built-in function](https://github.com/GoogleCloudPlatform/healthcare-data-harmonization/blob/master/mapping_language/doc/builtins.md#listlen). Even more interesting, however, is the syntax, *subjects[*]*. In the *Reference_Enrollment* call, we saw the empty square braces which instructed whistle to pass the contents of the list one at a time. When you include the asterisk inside it as we see here, it tells whistle to pass them all together. So, the function ListLen will receive all 10 of our subjects and return the correct number. 
+
+> out research_study: StudyGroup(study, family.subject[*]);
+OK, that should look mostly familiar by now, but you may be wondering about the family.subject business. If you remember back when we were setting up our configuration, you may recall we told Whistler to embed subjects inside the family. Well, this is the end result. Each family has a new property, *subject* which contains all of the subjects that had that particular subject_id. Since thi
+
+> var subjects: $Flatten(families[*].subject);
+There are a few things here that might be confusing. First, you may recall that, when we created our configuration file, we instructed Whistler to embed *subject* into *family*. Well, this is the result of that instruction. Each family now has a new property, *subject* which contains all subjects for the family. 
+
+So, now that we know that there is no single pool of subjects to pass to our StudyGroup function, we need to build that list by iterating over each family and concatenating their subjects together. Well, that's exactly what the syntax, *families[\*].subjects*, does, however, it returns a list for each family, so we have to use another built-in function, [Flatten](https://github.com/GoogleCloudPlatform/healthcare-data-harmonization/blob/master/mapping_language/doc/builtins.md#flatten) to turn those 3 nested arrays into one.  And because we defined *subjects* using the keyword, *var*, *subjects* is a temporary variable and not a part of the returned object. 
+
+That very last line should look very familiar by now. We simply pass our *study* and the newly created list of *subjects* to our *StudyGroup* function and append the returned resource(s) to the *research_study* out property. 
+
+And, as before, we have to add this new Process function to our Transform_dataset function. We'll add it at the end:
+```___transform.wstl
+def Transform_Dataset(resource) {
+    $this: CreateDataDictionaryTerminologies(resource);
+    $this: CreateDataDictionaryConceptMap(resource);
+    $this: CreateDataDictionaryDefinitions(resource);
+    $this: BuildRawDataObs(resource);
+
+    // Project Specific functions
+    $this: ProcessStudy(resource.study);
+    $this: ProcessStudyGroup(resource.study, resource.family);
+}
+```
+
+| A note about passing lists to functions. In the example above where we have, *quantity: $ListLen(subjects[*]);*, that was used as an example. It would have worked fine without the asterisk, which is what you see in subsequent function calls. It just seemed to be a gentler way to introduce the syntax for *families[*].subjects*, which would not have worked without the asterisk. 

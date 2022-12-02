@@ -474,9 +474,8 @@ def StudyGroup(study, subjects) {
 // Description: Wrapper to create the group(s)
 //
 //  study - This is the full study object created by Whistler
-//  families - The family table from the root object 
-def ProcessStudyGroup(study, families) {
-    var subjects: $Flatten(families[*].subject);
+//  subjects - All of the subjects participating in this study
+def ProcessStudyGroup(study, subjects) {
     out research_study: StudyGroup(study, subjects);
 }
 ```
@@ -492,17 +491,10 @@ That *Reference_Enrollment* call simply builds identifiers for one subject and a
 > quantity: $ListLen(subjects[*]);
 This line introduces a couple more tricks. First, there is the function $ListLen which is a whistle [built-in function](https://github.com/GoogleCloudPlatform/healthcare-data-harmonization/blob/master/mapping_language/doc/builtins.md#listlen). Even more interesting, however, is the syntax, *subjects[*]*. In the *Reference_Enrollment* call, we saw the empty square braces which instructed whistle to pass the contents of the list one at a time. When you include the asterisk inside it as we see here, it tells whistle to pass them all together. So, the function ListLen will receive all 10 of our subjects and return the correct number. 
 
-> out research_study: StudyGroup(study, family.subject[*]);
-OK, that should look mostly familiar by now, but you may be wondering about the family.subject business. If you remember back when we were setting up our configuration, you may recall we told Whistler to embed subjects inside the family. Well, this is the end result. Each family has a new property, *subject* which contains all of the subjects that had that particular subject_id. Since thi
+> out research_study: StudyGroup(study, subjects);
+This should look pretty familiar now. We are just passing on the study and subjects to the new StudyGroup function and adding them to out's research_study. 
 
-> var subjects: $Flatten(families[*].subject);
-There are a few things here that might be confusing. First, you may recall that, when we created our configuration file, we instructed Whistler to embed *subject* into *family*. Well, this is the result of that instruction. Each family now has a new property, *subject* which contains all subjects for the family. 
-
-So, now that we know that there is no single pool of subjects to pass to our StudyGroup function, we need to build that list by iterating over each family and concatenating their subjects together. Well, that's exactly what the syntax, *families[\*].subjects*, does, however, it returns a list for each family, so we have to use another built-in function, [Flatten](https://github.com/GoogleCloudPlatform/healthcare-data-harmonization/blob/master/mapping_language/doc/builtins.md#flatten) to turn those 3 nested arrays into one.  And because we defined *subjects* using the keyword, *var*, *subjects* is a temporary variable and not a part of the returned object. 
-
-That very last line should look very familiar by now. We simply pass our *study* and the newly created list of *subjects* to our *StudyGroup* function and append the returned resource(s) to the *research_study* out property. 
-
-And, as before, we have to add this new Process function to our Transform_dataset function. We'll add it at the end:
+And, as before, we have to add this new Process function to our Transform_dataset function. However, there is a bit of a wrinkle with this one. Have a look at the new code below with the new lines being there at the end of the otherwise familiar Transform_Dataset function:
 ```___transform.wstl
 def Transform_Dataset(resource) {
     $this: CreateDataDictionaryTerminologies(resource);
@@ -512,8 +504,238 @@ def Transform_Dataset(resource) {
 
     // Project Specific functions
     $this: ProcessStudy(resource.study);
-    $this: ProcessStudyGroup(resource.study, resource.family);
+
+    // Assemble our list of subjects by concatenating the various family members
+    var subjects: $Unique($Flatten(resource.family[*].subject));
+
+    // Build the StudyGroup
+    $this: ProcessStudyGroup(resource.study, subjects);
 }
 ```
+There is quite a bit of new stuff going on with the second from the last command there: 
+> var subjects: $Unique($Flatten(resource.family[*].subject));
+Earlier we learned that the whistle operator "[\*]" effectively aggregates all of a list's contents together. However, since we don't actually want the family objects, we aggregate the families' subjects. And, because each of those family's have an array of subjects, we end up with three arrays of subjects, so we use the whistle builtin, [$Flatten](https://github.com/GoogleCloudPlatform/healthcare-data-harmonization/blob/master/mapping_language/doc/builtins.md#flatten) to turn those 3 nested arrays into one. Then, while it isn't necessary for this particular dataset, we use the builtin *$Unique* to make sure we don't get any duplicates. If this were real data, it does seem reasonable that some people may end up in multiple families and we definitely wouldn't want them to be duplicated in the final result. 
 
-| A note about passing lists to functions. In the example above where we have, *quantity: $ListLen(subjects[*]);*, that was used as an example. It would have worked fine without the asterisk, which is what you see in subsequent function calls. It just seemed to be a gentler way to introduce the syntax for *families[*].subjects*, which would not have worked without the asterisk. 
+| A note about passing lists to functions. In the example above where we have, *quantity: $ListLen(subjects[*]);*, that was used as an example. It would have worked fine as simply *subjects*, which is what you see in subsequent function calls. It just seemed to be a gentler way to introduce the syntax for *families[*].subjects*, which would not have worked without the asterisk and square braces. 
+
+With this addition in place, we can now run play once again:
+```bash
+$ play study.yaml
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /home/est/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+ddmeta                           ActivityDefinition       6          100.00
+ddmeta                           CodeSystem               21         100.00
+ddmeta                           ObservationDefinition    75         100.00
+ddmeta                           ValueSet                 21          91.30
+harmony                          ConceptMap               1          100.00
+harmony                          ValueSet                 2            8.70
+research_study                   Group                    1          100.00
+research_study                   ResearchStudy            1          100.00
+source_data                      Observation              106        100.00
+```
+And if we view open that output file up, we can see our shiny new Study Group. 
+```JSON
+    {
+      "actual": true,
+      "identifier": [
+        {
+          "system": "https://some-place.org/tut/fhir/group",
+          "value": "TUT"
+        }
+      ],
+      "member": [
+        {
+          "entity": {
+            "identifier": {
+              "system": "https://some-place.org/tut/fhir/patient",
+              "value": "fd-sub1"
+            }
+          }
+        },
+        {
+          "entity": {
+            "identifier": {
+              "system": "https://some-place.org/tut/fhir/patient",
+              "value": "fd-sub2"
+            }
+          }
+        },
+        {
+          "entity": {
+            "identifier": {
+              "system": "https://some-place.org/tut/fhir/patient",
+              "value": "fd-sub3"
+            }
+          }
+        },
+        (**SEVERAL MORE "entity" ENTRIES**)
+      ],
+      "meta": {
+        "tag": [
+          {
+            "code": "TUT",
+            "system": "https://some-place.org/tut/fhir/researchstudy"
+          }
+        ]
+      },
+      "quantity": 9,
+      "resourceType": "Group",
+      "type": "person"
+    }
+  ],
+```
+As you can see, our function did what we wanted by adding all 9 of our subjects as member objects with an "entity" property that will get transformed into a proper reference when we load this data into a real FHIR server. You can also see the results of the $ListLen call, which is 9. 
+
+## FHIR Patients as Our Subjects
+FHIR Was initially designed as a common API for accessing EHR data. So, rather than participants or subjects, we have *Patient* resources. To create these key resources, we need to create another set of functions, and we'll write them to a file named, *projector/subject.wstl*. 
+
+```subject.wstl
+def Subject(study, subject) {
+    meta.tag[]: StudyMeta(study);
+    identifier[]: Key_Identifier(study, "Patient", subject.subject_id);
+    gender (if subject.sex ~= "."): HarmonizeAsCode(subject.sex, "sex");
+    extension[]: RaceExtension(subject.ancestry);
+    extension[]: EthnicityExtension(subject.ethnicity);
+    resourceType : "Patient"
+}
+
+def ProcessSubject(study, subject) {
+    out patient: Subject(study, subject);
+}
+```
+Some of this should look familiar, but we have several new features to discuss: 
+
+### Inline If Statements
+One of the major goals of Whistle is to make the language itself as unobtrusive as possible so that the transformations can be as apparent to the casual reader as possible. We've already seen some of this by using the different forms of the square brackets to eliminate what would normally be a loop. This is also apparent with the way whistle drops empty properties and returns without any intervention on the part of the ETL Author. 
+
+To make conditionals cleaner, whistle recommends an inline application of the if statement, which is what we see in the assignment of gender: 
+> gender (if subject.sex ~= "."): HarmonizeAsCode(subject.sex, "sex");
+That if inside the parenthesis tells whistle only to execute the HarmonizeAsCode function if the subject.sex is not ".". That "." is just a possible value that someone was using to annotate missingness in their data. This would be dataset specific, since some folks may have a specific code to signify missingness, or just permit the value to be blank. 
+
+That line also has something else that is new, the function *HarmonizeAsCode*. This is another Whistler function that was provided by the init-play call. As you might have guessed, it can be found in the file, projector/_harmonize_as_code.wstl. At the core, these functions use whistle's $HarmonizeCode builtin to convert the value for the subject's sex to the appropriate code specified by the FHIR Spec. We haven't really dug into the harmony file so this provides a good opportunity to touch a bit on that. 
+
+If you were to open the file, harmony/data-harmony.csv, the first few lines look like this:
+```csv
+local code,text,table_name,parent_varname,local code system,code,display,code system,comment
+Male,Male,subject,Sex,sex,male,Male,http://hl7.org/fhir/administrative-gender,
+Female,Female,subject,Sex,sex,female,Female,http://hl7.org/fhir/administrative-gender,
+```
+Those lines tell whistle that the local code, *Male*, should be mapped to the remote code, "male". Normally, a Harmony call returns one or more terms including the code, display and system, however, because the gender require codes from a particularly system, http://hl7.org/fhir/administrative-gender, all we really need is the code. Hence the use of that particular function. 
+
+### The Harmony's "local code system" value is key
+When you are calling one of the Harmony functions provided by Whistler, such as HarmonizeAsCode, the spelling for that second parameter is vital. If you were to misuse case or use *gender* for the local code system, the Harmony call would not find a match and would return NIL. 
+
+> **About Harmony** Whistler provides a number of helper functions that make your whistle code easier to ready, but those functions assume that you have only one Harmony file and that it is named *data-harmony.csv*. For more information about Whistler Harmony files and their importance in FHIR ETL, take a look at the [reference manual](https://nih-ncpi.github.io/ncpi-whistler/#/harmony).
+
+OK, in order for whistle to actually use the new Subject function, we have to tie it into our main function, Transform_Dataset. As before, we've added it at the bottom of the function:
+```___transform.wstl
+def Transform_Dataset(resource) {
+    $this: CreateDataDictionaryTerminologies(resource);
+    $this: CreateDataDictionaryConceptMap(resource);
+    $this: CreateDataDictionaryDefinitions(resource); 
+    $this: BuildRawDataObs(resource);
+
+    // Project Specific functions
+    $this: ProcessStudy(resource.study);
+
+    // Assemble our list of subjects by concatenating the various family members
+    var subjects: $Unique($Flatten(resource.family[*].subject));
+
+    // Build the StudyGroup
+    $this: ProcessStudyGroup(resource.study, subjects);
+
+    // Build the Patient Resources
+    $this: ProcessSubject(resource.study, resource.subject[]);
+}
+```
+That should look pretty familiar by now, so I won't spend much time discussing it. However, know that the function took a single Subject at a time, and we have called it using resource.subject[], which means that the ProcessSubject function will be called 9 times. Also, the ProcessSubject is sending those out to the patient property on the main out structure. 
+
+Let's run play one more time and then have a look at some of those subjects:
+```bash
+$ play study.yaml
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /home/est/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+ddmeta                           ActivityDefinition       6          100.00
+ddmeta                           CodeSystem               21         100.00
+ddmeta                           ObservationDefinition    75         100.00
+ddmeta                           ValueSet                 21          91.30
+harmony                          ConceptMap               1          100.00
+harmony                          ValueSet                 2            8.70
+patient                          Patient                  9          100.00
+research_study                   Group                    1          100.00
+research_study                   ResearchStudy            1          100.00
+source_data                      Observation              106        100.00
+```
+If you open the output file, output/whistle-output/tut.output.json, and search for the root property, "patient", you should 9 patients. Here is the first one:
+```output/whistle-output/tut.output.json
+{
+    "extension": [
+    {
+        "extension": [
+        {
+            "url": "ombCategory",
+            "valueCoding": {
+            "code": "2028-9",
+            "display": "White",
+            "system": "urn:oid:2.16.840.1.113883.6.238",
+            "version": "v1"
+            }
+        },
+        {
+            "url": "text",
+            "valueString": "White"
+        }
+        ],
+        "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race"
+    },
+    {
+        "extension": [
+        {
+            "url": "ombCategory",
+            "valueCoding": {
+            "code": "2135-2",
+            "display": "Hispanic or Latino",
+            "system": "urn:oid:2.16.840.1.113883.6.238",
+            "version": "v1"
+            }
+        },
+        {
+            "url": "text",
+            "valueString": "Hispanic or Latino"
+        }
+        ],
+        "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity"
+    }
+    ],
+    "gender": "male",
+    "identifier": [
+    {
+        "system": "https://some-place.org/tut/fhir/patient",
+        "value": "fd-sub1"
+    }
+    ],
+    "meta": {
+    "tag": [
+        {
+        "code": "TUT",
+        "system": "https://some-place.org/tut/fhir/researchstudy"
+        }
+    ]
+    },
+    "resourceType": "Patient"
+}
+```
+Thanks to those extensions, this looks a lot longer than it really is. However, despite all the extra stuff, I hope you can see that we have a White, Hispanic Male. 
+

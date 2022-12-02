@@ -11,13 +11,13 @@ Native Hawaiian or Other Pacific Islander,Native Hawaiian or Other Pacific Islan
 Other,Other,subject,ancestry,race,UNK,Unknown,http://terminology.hl7.org/CodeSystem/v3-NullFlavor,https://docs.google.com/spreadsheets/d/1cHSburUDg6CR4az5FZR82FI992h7cyv-22pLVTFLZvE/edit#gid=1746314807
 Other,Other,subject,ancestry,race,other,Other,http://hl7.org/fhir/administrative-gender,
 Prefer not to answer,Prefer not to answer,subject,ancestry,race,ASKU,asked but unknown,http://terminology.hl7.org/CodeSystem/v3-NullFlavor,https://docs.google.com/spreadsheets/d/1cHSburUDg6CR4az5FZR82FI992h7cyv-22pLVTFLZvE/edit#gid=1746314807
-Hispanic or Latino,Hispanic or Latino,subject,Ethnicity,Ethnicity,2135-2,Hispanic or Latino,urn:oid:2.16.840.1.113883.6.238,
-NA,NA,subject,Ethnicity,Ethnicity,UNK,Unknown,http://terminology.hl7.org/CodeSystem/v3-NullFlavor,https://docs.google.com/spreadsheets/d/1cHSburUDg6CR4az5FZR82FI992h7cyv-22pLVTFLZvE/edit#gid=1746314807
-Not Hispanic or Latino,Not Hispanic or Latino,subject,Ethnicity,Ethnicity,2186-5,Not Hispanic or Latino,urn:oid:2.16.840.1.113883.6.238,
-Prefer not to answer,Prefer not to answer,subject,Ethnicity,Ethnicity,ASKU,asked but unknown,http://terminology.hl7.org/CodeSystem/v3-NullFlavor,https://docs.google.com/spreadsheets/d/1cHSburUDg6CR4az5FZR82FI992h7cyv-22pLVTFLZvE/edit#gid=1746314807
-True,Condition Absent,condition,present_absent,ConditionPresent,refuted,Refuted,http://terminology.hl7.org/CodeSystem/condition-ver-status,
-False,Condition Present,condition,present_absent,ConditionPresent,confirmed,Confirmed,http://terminology.hl7.org/CodeSystem/condition-ver-status,
-Possible,Condition Unconfirmed,condition,present_absent,ConditionPresent,unconfirmed,Unconfirmed,http://terminology.hl7.org/CodeSystem/condition-ver-status,
+Hispanic or Latino,Hispanic or Latino,subject,Ethnicity,ethnicity,2135-2,Hispanic or Latino,urn:oid:2.16.840.1.113883.6.238,
+NA,NA,subject,Ethnicity,ethnicity,UNK,Unknown,http://terminology.hl7.org/CodeSystem/v3-NullFlavor,https://docs.google.com/spreadsheets/d/1cHSburUDg6CR4az5FZR82FI992h7cyv-22pLVTFLZvE/edit#gid=1746314807
+Not Hispanic or Latino,Not Hispanic or Latino,subject,Ethnicity,ethnicity,2186-5,Not Hispanic or Latino,urn:oid:2.16.840.1.113883.6.238,
+Prefer not to answer,Prefer not to answer,subject,Ethnicity,ethnicity,ASKU,asked but unknown,http://terminology.hl7.org/CodeSystem/v3-NullFlavor,https://docs.google.com/spreadsheets/d/1cHSburUDg6CR4az5FZR82FI992h7cyv-22pLVTFLZvE/edit#gid=1746314807
+True,Condition Absent,condition,present_absent,condition_present,refuted,Refuted,http://terminology.hl7.org/CodeSystem/condition-ver-status,
+False,Condition Present,condition,present_absent,condition_present,confirmed,Confirmed,http://terminology.hl7.org/CodeSystem/condition-ver-status,
+Possible,Condition Unconfirmed,condition,present_absent,condition_present,unconfirmed,Unconfirmed,http://terminology.hl7.org/CodeSystem/condition-ver-status,
 HP:0000076,Vesicoureteral reflux,condition,condition_code,condition_code,HP:0000076,Vesicoureteral reflux,https://uberon.github.io/,
 HP:0000126,Hydronephrosis,condition,condition_code,condition_code,HP:0000126,Hydronephrosis,https://uberon.github.io/,
 HP:0000189,Narrow palate,condition,condition_code,condition_code,HP:0000189,Narrow palate,https://uberon.github.io/,

@@ -9,14 +9,14 @@ The *core* just creates whistle code that provides some useful functions that ar
 Because the *dd* option depends on *core*, there isn't a difference between *ALL* and *dd*. However, we may add additional modules in the future. 
 
 ```bash
-$ init-play study.yaml
+$ init-play study.yaml --no-profile
 Selected modules: core,dd
 
 Writing data to projector
 Creating files for module, core
 Creating files for module, dd
 ```
-If you run the command from the text box above, *init-play study.yaml*, you should see the response listed below it. Now, if you use linux ls to list the contents of the projector directory, you should see something like this:
+If you run the command from the text box above, *init-play study.yaml --no-profile*, you should see the response listed below it. Now, if you use linux ls to list the contents of the projector directory, you should see something like this:
 
 ```bash
 $ ls projector/
@@ -40,7 +40,7 @@ wlib_dd_tables_and_vars.wstl
 wlib_dd_terms_codesystem.wstl
 wlib_dd_terms_valueset.wstl
 ```
-The ellipses, ..., is where I've deleted some lines from the output to be more concise. As you can see, there are a lot of files present. The directory, *projector*, was the directory we specified in the configuration file for *projector_lib*. 
+The ellipses, ..., is where I've deleted some lines from the output to be more concise. As you can see, there are a lot of files present. The directory, *projector*, was the directory we specified in the configuration file for *projector_lib*. The flag, --no-profile tells init-play to generate *generic* FHIR resources as opposed to utilizing the NCPI FHIR IG profiles. This makes it possible to validate and load resources into a FHIR Server without having to have loaded the IG first. 
 
 The funny naming convention used is intended to group different types of files together. The files starting with two underscores, such as *__create_data_dictionary_conceptmap.wstl*, are high level functions that can be called to produce a set of resources. In that particular case, it creates the [Study Data Dictionary ConceptMap](https://nih-ncpi.github.io/ncpi-fhir-ig/study_metadata.html#study-data-dictionary-data-table) which is one of the components specified in the NCPI FHIR IG. 
 
@@ -292,10 +292,10 @@ def Study(study) {
     // FHIR Identifier has system/value pairs. We'll be using the study_id
     // and, optionally, the DbGAP accession id if it were present as 
     // identifiers
-    identifier: Key_Identifier(study, "ResearchStudy", study.id);
+    identifier[]: Key_Identifier(study, "ResearchStudy", study.id);
 
 ```
-That will build a system that is based on the identifier prefix we provided in the configuration as well as the study's ID value, also from the configuration file. 
+That will build a system that is based on the identifier prefix we provided in the configuration as well as the study's ID value, also from the configuration file. If you look at the FHIR Spec for [ResearchStudy](https://hl7.org/fhir/researchstudy.html#resource), you will notice that the *identifier* property is an array. To be correct, our identifier must be written to an array. Without the square braces, *identifier* would just be an object, which is not valid for this resource. The empty square braces simply means the target variable is an array and, if the assignment is non-nil, it will be appended to the end (in this case, since there is nothing else in it, it will be the first entry). 
 
 This function is also used for referencing our enrollment, though, it is used indirectly via the function, *Reference_Key_Identifier* which can be found in the *_reference_key_identifier.wstl* whistle file. 
 ```JSON
@@ -344,7 +344,7 @@ def Study(study) {
     // FHIR Identifier has system/value pairs. We'll be using the study_id
     // and, optionally, the DbGAP accession id if it were present as 
     // identifiers
-    identifier: Key_Identifier(study, "ResearchStudy", study.id);;
+    identifier[]: Key_Identifier(study, "ResearchStudy", study.id);;
 
     // The title and description will come from our study object
     title: study.title;

@@ -739,3 +739,173 @@ If you open the output file, output/whistle-output/tut.output.json, and search f
 ```
 Thanks to those extensions, this looks a lot longer than it really is. However, despite all the extra stuff, I hope you can see that we have a White, Hispanic Male. 
 
+## FHIR Conditions for Research
+We have a table, conditions.csv which contains just a few columns: *subject_id*, *condition_code*, *condition_name* and *present_absent*. To represent the conditions that are present, we'll use the FHIR Condition resource. To transform entries from this table into FHIR, we might use something like the whistle code below:
+```projector/condition.wstl
+// Build our Condition Identifiers
+def BuildConditionIdentifier(study, required condition_code, required subject_id) {
+    $this: Key_Identifier(study, "Condition", $StrCat(subject_id, ".", condition_code));
+}
+
+// Build the Condition Resource
+def Condition(study, condition) {
+    // Skip this entirely if there is no condition_code
+    if (condition.condition_code?) {
+        // HarmonizeMapped filters out *self* references 
+        var coding: HarmonizeMapped(condition.condition_code, "condition_code");
+
+        // Skip this if our condition didn't map to anything
+        if (coding) {
+            meta.tag[]: StudyMeta(study);
+            identifier[]: BuildConditionIdentifier(study, condition.condition_code, condition.subject_id);
+            resourceType: "Condition";
+            subject: Reference_Key_Identifier(study, "Patient", condition.subject_id);
+            verificationStatus.coding[]: BuildCoding("confirmed", "Confirmed", "http://terminology.hl7.org/CodeSystem/condition-ver-status");
+            verificationStatus.text: "Present"
+            code.coding: coding;
+            code.text: condition.condition_name;
+        }
+    }
+}
+
+def ProcessCondition(study, condition) {
+    out condition: Condition(study, condition);
+}
+```
+### BuildConditionIdentifier
+That first function is a bit of a convenience function. In order to ensure that each identifier for our conditions is unique, we need to use two variables: *subject_id* and *condition_code*. That builtin, *$StrCat* just concatenates each of its arguments together. So, $StrCat("Whistle", " ", "is", " ", "awesome") would return a single string, "Whistle is awesome". 
+
+We could just bypass the extra function and directly perform that string concatenation each time we need it, but that would make the code a bit less readable and could add a bit of risk, since order of those arguments is absolutely necessary for them to be correct. 
+
+The last thing to note is the use of *required* in the argument list. When a function call is made and any of the *required* arguments are NIL, the function is not executed. Now, the bad thing here might be that the identifier end up as NIL if either of those are missing, but Whistler will actually halt if it encounters a resource that should have an identifier that doesn't. 
+
+### Condition
+Most of this should look familiar, however there are a few new things to discuss here: 
+> if (condition.condition_code?) {
+That question mark after condition_code is basically testing for something other than NIL. So, if there is no condition_code for some reason, we don't really need to do anything more after this point. 
+
+> var coding: HarmonizeMapped(condition.condition_code, "condition_code");
+HarmonizeMapped is a convenience function that only returns those translations (from your harmony file) that match some external source. We'll discuss this a bit more in depth later. 
+
+> verificationStatus.coding[]: BuildCoding("confirmed", "Confirmed", "http://terminology.hl7.org/CodeSystem/condition-ver-status");
+> verificationStatus.text: "Present"
+The function, *BuildCoding* is another convenience function that basically just assembles a valid FHIR Coding out of the three arguments. We could have done that inline but this makes things a bit easier to read. 
+
+As for setting the verificationStatus.text to "Present", that is just a convention that we recommend. If you have something that is transformed to a formal term, it's generally helpful to provide the source data, or something akin to the source value for the text. In this case, since it was HPO Present, we simply indicate that the Condition is present, which is what we are trying to say with that *confirmed* code. 
+
+### ProcessCondition
+This should look very familiar by now. Nothing new here at all. 
+
+> **A Note About Self Reference Harmony Entries** It may seem strange to have mappings back to the local code, but this is useful if there is valuable information from the data-dictionary that can be used to populate a FHIR resource. For instance, if you have a column that is basically a tick mark for some sort of disease, the data-dictionary may have a nice, human readable version that would work better in the text field than, oh..say 1 or True or whatever the tick is. In that case, you would use something like, *HarmonizeLocalDisplay* which would filter out real matches and only return the display value for the first entry. 
+> 
+> While these are helpful for highly specific use cases, the vast majority of uses will employ the *HarmonizeMapped* function or one of its derivatives (most of the Harmonize* functions call HarmonizeMapped and then do something with the return). These self reference entries do not contain valid systems and therefore, will not pass FHIR Validation. 
+
+As before, we add a call to the new process function to the end of our Transform_Dataset function:
+```projector/___transform.wstl
+def Transform_Dataset(resource) {
+    $this: CreateDataDictionaryTerminologies(resource);
+    $this: CreateDataDictionaryConceptMap(resource);
+    $this: CreateDataDictionaryDefinitions(resource);
+    $this: BuildRawDataObs(resource);
+
+    // Project Specific functions
+    $this: ProcessStudy(resource.study);
+
+
+    var subjects: $Unique($Flatten(resource.family[*].subject));
+    // Build the StudyGroup
+    $this: ProcessStudyGroup(resource.study, subjects);
+
+    // Build the Patient Resources
+    $this: ProcessSubject(resource.study, subjects[]);
+
+    // Build the Condition Resources
+    $this: ProcessCondition(resource.study, resource.conditions[]);
+}
+```
+Hopefully, this addition needs no additional explanation. 
+
+With that in place, we can now run play once again. 
+```bash
+$ play study.yaml 
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /home/est/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+condition                        Condition                64         100.00
+ddmeta                           ActivityDefinition       6          100.00
+ddmeta                           CodeSystem               22         100.00
+ddmeta                           ObservationDefinition    75         100.00
+ddmeta                           ValueSet                 22          91.67
+harmony                          ConceptMap               1          100.00
+harmony                          ValueSet                 2            8.33
+patient                          Patient                  9          100.00
+research_study                   Group                    1          100.00
+research_study                   ResearchStudy            1          100.00
+source_data                      Observation              106        100.00
+```
+Now we have another module which contains 64 conditions. If we open the output file, we can see our conditions under the root level "condition" list. 
+```output/whistle-output/tut.output.json
+{
+  "code": {
+    "coding": [
+      {
+        "code": "HP:0000076",
+        "display": "Vesicoureteral reflux",
+        "system": "http://purl.obolibrary.org/obo/hp.owl",
+        "version": "v1"
+      }
+    ],
+    "text": "Vesicoureteral reflux"
+  },
+  "identifier": [
+    {
+      "system": "https://some-place.org/tut/fhir/condition",
+      "value": "fd-sub1.HP:0000076"
+    }
+  ],
+  "meta": {
+    "tag": [
+      {
+        "code": "TUT",
+        "system": "https://some-place.org/tut/fhir/researchstudy"
+      }
+    ]
+  },
+  "resourceType": "Condition",
+  "subject": {
+    "identifier": {
+      "system": "https://some-place.org/tut/fhir/patient",
+      "value": "fd-sub1"
+    }
+  },
+  "verificationStatus": {
+    "coding": [
+      {
+        "code": "confirmed",
+        "display": "Confirmed",
+        "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status"
+      }
+    ],
+    "text": "Present"
+  }
+}
+```
+This should look clear enough. The code property contains a coding which consists of the output of the Harmony call and our verificationStatus is a full coding that contains the 3 parameters we used for the BuildCoding call. 
+
+While there are a lot more resources that we should define if we want to build a complete ETL For the data at hand, but these examples should be sufficient for you to now build the rest on your own. Some tips as to what sort of resources would be recommended include:
+
+* ResearchSubject which links Patients to a ResearchStudy via the FHIR convention.
+* Observations which capture the HP Codes that are noted as *absent*.
+* Observations and Groups to represent Families and the individual relationship pairs. 
+* Sample resources
+* File Metadata for sequencing data as DocumentReferences
+* discovery information that conforms to the resources specified by [the Genomics Reporting IG](http://hl7.org/fhir/uv/genomics-reporting/index.html).
+
+For those who have access to a FHIR server where they have permission to write data can continue on to [Loading Data Into FHIR](/loading).
+
+If you aren't ready to actually load data into a FHIR Server, you can skip the load part and take a look at the [Final Thoughts](/final_thoughts).

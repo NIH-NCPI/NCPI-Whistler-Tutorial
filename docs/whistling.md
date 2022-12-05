@@ -295,7 +295,7 @@ def Study(study) {
     identifier[]: Key_Identifier(study, "ResearchStudy", study.id);
 
 ```
-That will build a system that is based on the identifier prefix we provided in the configuration as well as the study's ID value, also from the configuration file. If you look at the FHIR Spec for [ResearchStudy](https://hl7.org/fhir/researchstudy.html#resource), you will notice that the *identifier* property is an array. To be correct, our identifier must be written to an array. Without the square braces, *identifier* would just be an object, which is not valid for this resource. The empty square braces simply means the target variable is an array and, if the assignment is non-nil, it will be appended to the end (in this case, since there is nothing else in it, it will be the first entry). 
+That will build a system that is based on the identifier prefix we provided in the configuration as well as the study's ID value, also from the configuration file. If you look at the FHIR Spec for [ResearchStudy](https://hl7.org/fhir/researchstudy.html#resource), you will notice that the *identifier* property is an array. To be correct, our identifier must be written to an array. Without the square braces, *identifier* would just be an object, which is not valid for this resource. For more information about that operator, see the message further down the page. 
 
 This function is also used for referencing our enrollment, though, it is used indirectly via the function, *Reference_Key_Identifier* which can be found in the *_reference_key_identifier.wstl* whistle file. 
 ```JSON
@@ -333,7 +333,7 @@ Now that we have that function, we can add it to Study function body as needed:
 ```
 If we had more URLs, we could add those as well using different labels. 
 
-> Whistle sidenote: that empty pair of squared brackets at the end of relatedArtifact instructions whistle that relatedArtifact should be a list and for it to add the return of the function call to the list. This is very helpful if aren't certain if the function will return an object. It also allows you to make repeated function calls to the same list (each time with empty square braces) knowing that any of those calls that produce non-NULL values will be appended to the list. 
+> *Whistle Side Note:* that empty pair of squared brackets at the end of relatedArtifact instructions whistle that relatedArtifact should be a list and for it to add the return of the function call to the list. This is very helpful if the return could be NIL. It also allows you to make repeated function calls to the same list (each time with empty square braces) knowing that any of those calls that produce non-NULL values will be appended to the list. 
 
 The final Study function should now look like this:
 ```JSON

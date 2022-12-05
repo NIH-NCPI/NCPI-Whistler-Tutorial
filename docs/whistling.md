@@ -344,7 +344,7 @@ def Study(study) {
     // FHIR Identifier has system/value pairs. We'll be using the study_id
     // and, optionally, the DbGAP accession id if it were present as 
     // identifiers
-    identifier[]: Key_Identifier(study, "ResearchStudy", study.id);;
+    identifier[]: Key_Identifier(study, "ResearchStudy", study.id);
 
     // The title and description will come from our study object
     title: study.title;

@@ -9,5 +9,7 @@ With that said, let's get started!
 * [Before You Begin](/before_you_begin)
 * [Setting up Your Project](/the_setup).
 * [Whistle Code](whistling)
+* [Loading Resources Into FHIR](/loading)
+* [Final Thoughts](/final_thoughts)
 
 

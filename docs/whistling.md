@@ -9,14 +9,16 @@ The *core* just creates whistle code that provides some useful functions that ar
 Because the *dd* option depends on *core*, there isn't a difference between *ALL* and *dd*. However, we may add additional modules in the future. 
 
 ```bash
-$ init-play study.yaml --no-profile
+$ init-play study.yaml --no-profiles
 Selected modules: core,dd
 
 Writing data to projector
 Creating files for module, core
 Creating files for module, dd
 ```
-If you run the command from the text box above, *init-play study.yaml --no-profile*, you should see the response listed below it. Now, if you use linux ls to list the contents of the projector directory, you should see something like this:
+If you run the command from the text box above, *init-play study.yaml --no-profiles*, you should see the response listed below it. The first argument, *study.yaml* is your configuration file. This informs Whistler where to write the files and, for the dd components, which variables to build resources for. That last argument, *--no-profiles*, just prevents Whistler from attempting to use NCPI FHIR IG profiles when generating these resources. In general, we recommend using those profiles, however, loading the IG is a bit outside the scope of this tutorial, so we are happy with just using vanilla resources. We will discuss profiles later on in this tutorial. 
+
+Now, if you use linux ls to list the contents of the projector directory, you should see something like this:
 
 ```bash
 $ ls projector/
@@ -164,7 +166,7 @@ Before we move on to writing actual Whistle code, we can use Whistler to generat
 
 There are [good reasons](https://nih-ncpi.github.io/ncpi-fhir-ig/using_source_data.html) to capture tabular data in FHIR even if those CSV files can be downloaded elsewhere, but it may not be something everyone agrees with. For that reason, as well as the fact that there are actually two recommended approaches to storing these data, Whistler requires a separate script be run to generate the whistle code. For this example, we'll stick with the slightly more straightforward approach, which is using an Observation for each row of data. To do that, we simply run a single program: 
 ```bash
-$ buildsrcobs study.yaml
+$ buildsrcobs study.yaml --no-profiles
 File created: projector/source_data_observations.wstl
 ```
 That file, source_data_observations.wstl, is more akin to the wlib_dd* files in that it is based on the contents of the data-dictionaries specified by the study configuration file. There is also a single top level function from that file that we'll need to add to our ___transform.wstl file, *BuildRawDataObs*.

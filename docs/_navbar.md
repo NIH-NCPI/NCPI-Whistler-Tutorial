@@ -7,6 +7,7 @@
   * [Project Setup](/the_setup)
   * [Writing Whistle](/whistling)
   * [Loading Into FHIR](/loading)
+  * [Profiles](/profiles)
   * [Final Thoughts](/final_thoughts)
 * [NCPI FHIR IG](https://nih-ncpi.github.io/ncpi-fhir-ig/)
 * [HL7 FHIR](https://hl7.org/fhir/)

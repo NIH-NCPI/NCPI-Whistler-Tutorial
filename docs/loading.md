@@ -55,4 +55,4 @@ If you have more than one study that use the same projector library, you can hav
 
 To load more than one study at a time, simply provide more than one configuration file on the command and play will iterate over that list in sequential order. 
 
-That's pretty much it for loading data.From here, you may want to have a look at some [final thoughts](/final_thoughts).
+That's pretty much it for loading data. For information about loading IG Definitions into FHIR, checkout the section on [profiles](/profiles).

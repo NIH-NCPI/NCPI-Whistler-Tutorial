@@ -1,3 +1,6 @@
 
 # Always add fhir_hosts and any other files that have sensitive info from git
 fhir_hosts
+
+# Just some windows stuff that doesn't need to be controlled
+Thumbs.db

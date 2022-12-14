@@ -88,3 +88,80 @@ $ buildsrcobs study.yaml
 ```
 $ play study.yaml -e dev
 ```
+
+## Profiling Resources
+In the previous work we did writing Whistle code to build our Research Study, we could have used profiles, but chose to stick with vanilla FHIR Resources to make the walk through a bit simpler. However, using Profiles provides a number of advantages: 
+
+1) When loading profiled resources into a FHIR Server that validates prior to accepting a resource, if your resource doesn't conform to the profile, the load will fail. Thus, using profiles and forcing proper validation ensures that the data you are loading can be used as the IG suggests it can be. 
+2) Those profiles provide an additional way to search for content. Observation is a hugely flexible resource type that can be used for many different purposes, and requesting all Observations for a patient could return a huge amount of information even if you are looking for a specific subset. If those observations were profiled, then your query could be much more specific. For instance, even if you had a lot of measurements and other data associated with a given patient, if all you wanted were the tabular data we loaded earlier in the tutorial, assuming you updated them to use the profiles, then adding the argument "&_profile=https://nih-ncpi.github.io/ncpi-fhir-ig/StructureDefinition/raw-data-observation" to a specific patient's Observation query would limit it to only those with tabular data.
+
+To demonstrate adding profiles to your Whistle code, we'll modify the Study function we created earlier and profile it according to the NCPI FHIR IG. To proceed, we must know the profile's URL, which can be found by heading over to study's page in the [IG](https://nih-ncpi.github.io/ncpi-fhir-ig/StructureDefinition-ncpi-research-study.html).  If you navigate your browser to that page, you should be able to find the URL toward the top which provides a handy little button to copy the url to your clipboard, shown below: 
+
+![NCPI Research Study Screenshot Snippet](ncpi-research-study-url.jpg)
+
+Once you've copied that URL to your clipboard, you can easily add the profile to the original study code like so:
+```
+def Study(study) {
+    // Tag the resource with the study ID
+    meta.tag[]: StudyMeta(study);
+    meta.profile[]: "https://nih-ncpi.github.io/ncpi-fhir-ig/StructureDefinition/ncpi-research-study"
+    
+    // FHIR Identifier has system/value pairs. We'll be using the study_id
+    // and, optionally, the DbGAP accession id if it were present as 
+    // identifiers
+    identifier[]: Key_Identifier(study, "ResearchStudy", study.id);
+
+    // The title and description will come from our study object
+    title: study.title;
+    description: study.desc;
+```
+All resource types have the meta property and profile is one of meta's properties. The profile property's cardinality is *0..\**, so you can have more than one profile, which means that we have to assign it to a list type. 
+
+Now that we have modified our study, let's rerun play, except this time, only load the ResearchStudy resources: 
+```
+$ play study.yaml -r ResearchStudy -e dev
+Writing Harmony ConceptMap: harmony/data-harmony.json
+Whistle Path: /usr/local/bin/whistle
+🎶 Beautifully played.🎵
+Resulting File: output/whistle-output/tut.output.json
+Module Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+condition                        Condition                64         100.00
+ddmeta                           ActivityDefinition       6          100.00
+ddmeta                           CodeSystem               22         100.00
+ddmeta                           ObservationDefinition    75         100.00
+ddmeta                           ValueSet                 22          91.67
+harmony                          ConceptMap               1          100.00
+harmony                          ValueSet                 2            8.33
+patient                          Patient                  9          100.00
+research_study                   Group                    1          100.00
+research_study                   ResearchStudy            1          100.00
+source_data                      Observation              97         100.00
+source_data                      Questionnaire            6          100.00
+source_data                      QuestionnaireResponse    106        100.00
+6 ids found for ActivityDefinition
+1 ids found for ConceptMap
+64 ids found for Condition
+1 ids found for Group
+97 ids found for Observation
+75 ids found for ObservationDefinition
+9 ids found for Patient
+6 ids found for Questionnaire
+106 ids found for QuestionnaireResponse
+1 ids found for ResearchStudy
+Load Summary
+
+Module Name                      Resource Type            #         % of Total
+-------------------------------  ------------------------ --------- ----------
+research_study                   ResearchStudy            1          100.00
+0 unloaded resources written to output/whistle-output/invalid-references.json
+dumping IDs to file: output/whistle-output/study-ids.json
+```
+That argument, *-r ResearchStudy* instructed play to only load the resources of type ResearchStudy. If you were to run the following query against your FHIR server, you should see a bundle containing a single resource: 
+> http://localhost:8000/ResearchStudy?_tag=TUT&_profile=https://nih-ncpi.github.io/ncpi-fhir-ig/StructureDefinition/ncpi-research-study
+
+As you can see, utilizing profiles is easy and can help prevent building FHIR data that isn't interoperable with other NCPI data sets. 
+
+That's about it for using FHIR profiles. Why not proceed to our [Final Thoughts](/final_thoughts).

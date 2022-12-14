@@ -10,6 +10,7 @@ With that said, let's get started!
 * [Setting up Your Project](/the_setup).
 * [Whistle Code](whistling)
 * [Loading Resources Into FHIR](/loading)
+* [Using Profiles](/profiles)
 * [Final Thoughts](/final_thoughts)
 
 

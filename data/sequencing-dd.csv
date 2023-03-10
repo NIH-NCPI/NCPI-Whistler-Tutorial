@@ -1,4 +1,4 @@
-varname,vardesc,type,values,min,max
+variable_name,vardesc,data_type,enumerations,min,max
 seq_filename,seq_filename,String,,,
 vcf,vcf,String,,,
 subject_id,subject_id,String,,,

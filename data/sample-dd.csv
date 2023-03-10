@@ -1,4 +1,4 @@
-varname,vardesc,type,values,min,max
+variable_name,vardesc,data_type,enumerations,min,max
 subject_id,subject_id,String,,,
 sample_id,sample_id,String,,,
 dbgap_sample_id,dbgap_sample_id,Int,,1155301,1155303

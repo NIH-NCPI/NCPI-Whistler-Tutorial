@@ -1,4 +1,4 @@
-varname,vardesc,type,values,min,max
+variable_name,vardesc,data_type,enumerations,min,max
 family_id,family_id,String,,,
 consanguinity,consanguinity,String,No;Yes,,
 consanguinity_detail,consanguinity_detail,String,,,

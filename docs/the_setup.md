@@ -181,11 +181,11 @@ Next, we need to tell Whistler how to find the data-dictionaries for each of the
     data_dictionary:
       filename: data/subject-dd.csv
       colnames:
-          desc: vardesc
+          description: vardesc
 ```
 Unlike the other changes to the subject entry, the data-dictionary is a bit more complex. Here, we have two properties: *filename* and *colnames* so we have to pass it a yaml object rather than a single element like the strings we've been using. The property, *colnames*, is itself an object. 
 
-The filename property is hopefully familiar enough at this point. It simply tells whistler which file to associate with this table's meta data. The colnames, object, though is a bit different. Because there is no standardized format for these files, we allow ETL authors to specify mappings of their column names to those expected by Whistler. In this case, rather than the expected column name, *desc*, we are telling Whistler to look for *vardesc* instead. 
+The filename property is hopefully familiar enough at this point. It simply tells whistler which file to associate with this table's meta data. The colnames, object, though is a bit different. Because there is no standardized format for these files, we allow ETL authors to specify mappings of their column names to those expected by Whistler. In this case, rather than the expected column name, *description*, we are telling Whistler to look for *vardesc* instead. 
 
 To learn more about the data_dictionary entries, see [the manual](https://nih-ncpi.github.io/ncpi-whistler/#/ref/project_config?id=data_dictionary-required).
 

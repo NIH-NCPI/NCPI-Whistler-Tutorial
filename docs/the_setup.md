@@ -47,7 +47,7 @@ Read more about the file, [*fhir_hosts*](https://nih-ncpi.github.io/ncpi-whistle
 Whistler configuration files are simple YAML files which provide whistler with information about the study itself including entries for each of the CSV files that should be transformed. Except for *delfhir*, all Whistler commands require one or more configuration files to run. 
 
 ### Creating the Configuration File
-YAML is a very easy to read file format that uses plain text. To get started, open up the file, 'study.yaml' in your favorite editor and add the following lines of text:
+YAML is a very easy to read file format that uses plain text. To get started, create a file named 'study.yaml' in your favorite editor and add the following lines of text:
 ```yaml
 # The study_id should be unique across the target FHIR Server
 study_id: TUT

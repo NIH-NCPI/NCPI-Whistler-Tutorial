@@ -82,15 +82,20 @@ As for what that variable *ddmeta* looks like at the end of all of this, it is j
 Before we do that, however, we still have one last thing to do before we have a fully functional Whistler pipeline. 
 
 ## The Whistle Entrypoint
-The whistle entrypoint is just the whistle code that kicks everything off. While it can be more complex, I typically just have a single whistle call inside. This file should exist outside the projector library and must be specified in the configuration under the property, *whistle_src*. It simply calls the function we created above:
+In order for whistle to understand how to begin the transformation, we have to point it to the *entrypoint* or *main* function. This is simply a file that kicks everything off and, while it could be longer, ours can be as simple as a single line. 
+
+In the study.yaml file, we had the following:
+```study.yaml
+whistle_src: _entry.wstl
+```
+
+That is how we specify which file will be passed to whistle to begin running things. So, we now need to create this file and provide that function:
 ```_entry.wstl
 $this: Transform_Dataset($root);
 ```
 This should look familiar, except for a couple of things: 
 1. There is no function. This is just bare whistle code mappings.  
 2. $root is a variable that represents the JSON object that is passed to whistle. It is just the structured extractions from the CSVs, data-dictionaries and study details you described in your configuration file. 
-
-This file, _entry.wstl, is referenced inside the study.yaml file as the value for whistle_src. Whistler will pass that filename to the whistle compiler which then parses the instruction above to execute the Transform_dataset() function. 
 
 ## Generating FHIR Resources
 Now that we have our entrypoint, we can build some FHIR resources!

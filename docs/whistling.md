@@ -90,6 +90,8 @@ This should look familiar, except for a couple of things:
 1. There is no function. This is just bare whistle code mappings.  
 2. $root is a variable that represents the JSON object that is passed to whistle. It is just the structured extractions from the CSVs, data-dictionaries and study details you described in your configuration file. 
 
+This file, _entry.wstl, is referenced inside the study.yaml file as the value for whistle_src. Whistler will pass that filename to the whistle compiler which then parses the instruction above to execute the Transform_dataset() function. 
+
 ## Generating FHIR Resources
 Now that we have our entrypoint, we can build some FHIR resources!
 

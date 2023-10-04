@@ -155,7 +155,7 @@ dataset:
   sequencing:
     filename: data/sequencing.csv
   discovery:
-    filename: data/sequencing.csv
+    filename: data/discovery.csv
 ```
 This tells Whistler that we have 6 dataset tables, along with how to find the relevant files. You can have more than one file for each entry, just list them all on the same line separated by a comma. So, if you have two files for sample, that entry might look like: 
 
@@ -250,7 +250,7 @@ dataset:
       colnames:
           desc: vardesc
   discovery:
-    filename: data/sequencing.csv
+    filename: data/discovery.csv
     code_harmonization: harmony/data-harmony.csv
     key_columns: subject_id, sample_id
     data_dictionary:

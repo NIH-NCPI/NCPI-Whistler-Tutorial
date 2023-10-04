@@ -88,8 +88,7 @@ In the study.yaml file, we had the following:
 ```study.yaml
 whistle_src: _entry.wstl
 ```
-
-That is how we specify which file will be passed to whistle to begin running things. So, we now need to create this file and provide that function:
+That is how we specify which file will be passed to whistle to begin running things. So, we now need to create this file and provide that function call:
 ```_entry.wstl
 $this: Transform_Dataset($root);
 ```

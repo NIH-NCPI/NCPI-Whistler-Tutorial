@@ -252,7 +252,7 @@ dataset:
   discovery:
     filename: data/discovery.csv
     code_harmonization: harmony/data-harmony.csv
-    key_columns: subject_id, sample_id
+    key_columns: subject_id, sample_id, chrom, pos
     data_dictionary:
       filename: data/discovery-dd.csv
       colnames:
@@ -261,6 +261,8 @@ dataset:
 If you look carefully, you'll notice one more property that hasn't been discussed yet. The *key_columns* property that appears in all tables except the *subject*. This is only necessary if you decide you want to use some of the more advanced data-dictionary based Whistle code that Whistler can produce. That column instructs whister how which columns must be used to construct unique *keys* for the rows of data. For Sequencing, since a subject can have more than one file, we tell Whistler that each combination of *subject_id* AND *seq_filename* is necessary to be unique. 
 
 Subject is easy, since it's key column happens to be the default, which we defined in the property, *id_colname*. As a result, we don't need to provide a *key_columns* property for that table. 
+
+It is worth noting that discovery has 4 *key_columns*. This is because it isn't unique even with subject_id and sample_id. There is a subject with 3 different variants at different chrosome/position in this file, so we had to add those to the key columns as well. 
 
 There is actually more that can be done with our dataset entries. For instance, if we want to merge one table inside another table's entries based on common key columns, you can have Whistler do that for you. Or, if you want to group entries of the same table together using a set of keys, Whistler can do that as well. These types of transformation can help simplify the whistle code and make compilation of resources faster. However, they not expected to be necessary too often. Read more about configuration [dataset entries](https://nih-ncpi.github.io/ncpi-whistler/#/ref/project_config?id=the-dataset-list-dataset).
 
@@ -277,13 +279,14 @@ This would be your normal, standard configuration, but let's say you are working
 ```yaml
 active_tables:
   subject: true
-  family: false
+  family: true
   conditions: false
   sample: true
   sequencing: false
   discovery: false
+  harmony: false
 ```
-For this, Whistler would only process the tables, *subject* and *sample*. The whistle code would never even see *family*, *conditions*, *sequencing* nor *discovery* and would not attempt to build any resources from those tables. 
+For this, Whistler would only process the tables, *family*, *subject* and *sample*. The whistle code would never even see *conditions*, *sequencing* nor *discovery* and would not attempt to build any resources from those tables. Using these would allow you to run tests quicker to identify changes to your whistle code did what you want. Please note that in order for whistle to see *subject* for this configuration file, you must always provide *family* since the *subject* data is embedded inside the *family* table. Hiding *family* from whistler will also hide any embedded tables.
 
 For now, let's just assume we want Whistler to process all of the tables. But, rather than use the *ALL*, we'll simply set each individual table to true: 
 ```yaml
@@ -399,7 +402,7 @@ dataset:
   discovery:
     filename: data/sequencing.csv
     code_harmonization: harmony/data-harmony.csv
-    key_columns: subject_id, sample_id
+    key_columns: subject_id, sample_id, chrom, pos
     data_dictionary:
       filename: data/discovery-dd.csv
       colnames:

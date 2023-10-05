@@ -188,7 +188,7 @@ def Transform_Dataset(resource) {
 With this completed, we can run play once again: 
 
 ```bash
-$ initplay study.yaml
+$ play study.yaml
 Writing Harmony ConceptMap: harmony/data-harmony.json
 Whistle Path: /home/est/bin/whistle
 🎶 Beautifully played.🎵

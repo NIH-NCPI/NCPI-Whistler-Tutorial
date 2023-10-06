@@ -329,13 +329,13 @@ This assignment assumes that when we define that Group resource, that we do so u
 That leaves one last property for us to define, relatedArtifact. We could write this directly inside the Study function, but realistically, it could be used for more than one value, so it makes better sense to write a new function to do the work for us. Luckily, it's very easy to do. Since this is specific to the ResearchStudy, why don't we just add it to the same file we have been writing to for the Study function: 
 
 ```JSON
-def StudyArtifact(artifact_type, artifact_label, require artifact_url) {
+def StudyArtifact(artifact_type, artifact_label, required artifact_url) {
     type: artifact_type;
     label: artifact_label;
     url: artifact_url;
 }
 ```
-This is a pretty boring function, but a) it is reusable, and b) it is clear as to what it does--creating an object with the three properties that were passed to the function. That *require* decorator for the *artifact_url* argument tells whistle to return *NULL* if artifact_url doesn't exist. Whistle quitely drops anything that is *NULL*, so if our study configuration didn't define this URL, that object would not appear in the final FHIR Resource. 
+This is a pretty boring function, but a) it is reusable, and b) it is clear as to what it does--creating an object with the three properties that were passed to the function. That *required* decorator for the *artifact_url* argument tells whistle to return *NULL* if artifact_url doesn't exist. Whistle quitely drops anything that is *NULL*, so if our study configuration didn't define this URL, that object would not appear in the final FHIR Resource. 
 
 Now that we have that function, we can add it to Study function body as needed:
 ```JSON

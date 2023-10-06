@@ -174,8 +174,11 @@ There are [good reasons](https://nih-ncpi.github.io/ncpi-fhir-ig/using_source_da
 ```bash
 $ buildsrcobs study.yaml --no-profiles
 File created: projector/source_data_observations.wstl
+Please add the function, BuildRawDataObs to your main transform library function
 ```
-That file, source_data_observations.wstl, is more akin to the wlib_dd* files in that it is based on the contents of the data-dictionaries specified by the study configuration file. There is also a single top level function from that file that we'll need to add to our ___transform.wstl file, *BuildRawDataObs*.
+Once you run the command above, it asks you to add a new function to your *main transform library function*. This is the function we are calling from the *_entry.wstl* file and is defined inside the file, projector/___transform.wstl. This is just a helper to allow you to quickly get the code generated to be a part of the whistle compilation. 
+
+That file, source_data_observations.wstl, is more akin to the wlib_dd* files in that it is based on the contents of the data-dictionaries specified by the study configuration file. The top level function inside that file, *BuildRawDataObs*, is the function need to add to our Transform_dataset function (inside the ___transform.wstl file) to tie this in with everything else. To do this, simply add it to the bottom of that function as shown below:
 
 ```___transform.wstl
 def Transform_Dataset(resource) {

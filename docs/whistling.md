@@ -464,7 +464,7 @@ The NCPI FHIR IG specifies that there *must* be at least one *StudyGroup* for a 
 //
 //  study - This is the full study object created by Whistler
 //  subject - Must have a subject_id
-def Reference_Enrollment(study, family) {
+def Reference_Enrollment(study, subject) {
     if ($IsNotNil(subject.subject_id)) {
         entity: Reference_Key_Identifier(study, "Patient", subject.subject_id);
     }
